@@ -59,7 +59,9 @@ Do not edit the exampleRenviron file directly directly.
  plot_species(sciname, db)
  ```
 
- (example_Pyrrhura_devillei_range_map.png, "Pyrrhura devillei range")
+ Pyrrhura devillei range map
+  
+ ![Pyrrhura devillei range map](example_Pyrrhura_devillei_range_map.png)
 
  
  ```R
