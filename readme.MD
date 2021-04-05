@@ -49,3 +49,27 @@ To keep database username and passwords out of git and this script, this  uses a
 Do not edit the exampleRenviron file directly directly. 
 
  
+ ### Using this library
+ 
+ ```R
+ sciname <- 'Pyrrhura devillei'
+ db<- getdb()  
+ # this will error if it's not configured
+ # or if the database firewall is not open to your computer
+ plot_species(sciname, db)
+ ```
+
+ (example_Pyrrhura_devillei_range_map.png, "Pyrrhura devillei range")
+
+ 
+ ```R
+ scinames <- c("Selenidera maculirostris", 'Pyrrhura devillei')
+ areas_df <- get_species_range_areas(scinames, db)
+ # a data frame :
+ 
+                   sciname shape_area
+1 Selenidera maculirostris   81.94514
+2        Pyrrhura devillei   12.43406
+ 
+```
+
