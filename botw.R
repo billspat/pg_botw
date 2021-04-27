@@ -5,6 +5,7 @@ library(DBI)
 library(RPostgres)
 library(sf)
 library(ggplot2)
+library(lwgeom)
 
 library(rnaturalearth)
 library(rnaturalearthdata)
@@ -35,8 +36,10 @@ getdb <- function(){
     )
 }
 
+get_db_info(db=NA)
 
-get_species_rangemap <-function(db, sciname='Pyrrhura devillei' ){
+get_species_range_map <-function(sciname='Pyrrhura devillei',db=NULL ){
+    if(is.null(db)) { db <- getdb()}
     sql <- paste0("select shape  from all_species where sciname = '", sciname, "';")
     shape = st_read(db, query = sql)
     return(shape)
@@ -44,6 +47,7 @@ get_species_rangemap <-function(db, sciname='Pyrrhura devillei' ){
 }
 
 get_species_range_area <- function(sciname='Pyrrhura devillei', db=NULL ){
+    # pulls just the first result from the database of the species
     if(is.null(db)) { db <- getdb()}
     sql <- paste0("select sciname,shape_area from all_species where sciname = '", sciname, "';")
     res <- dbSendQuery(db, sql)
@@ -51,6 +55,15 @@ get_species_range_area <- function(sciname='Pyrrhura devillei', db=NULL ){
     dbClearResult(res)
     return(v)
 }
+
+calc_species_range_area <- function(sciname='Pyrrhura devillei', db=NULL){
+    if(is.null(db)) { db <- getdb()}
+    range_map <- get_species_range_map(sciname,db)
+    sq_km <- sf::st_area(range_map)/(1000000)
+    return(sq_km)
+
+}
+
 
 get_species_range_areas<-function(scinames, db=NULL){
     if(is.null(db)) { db <- getdb()}
@@ -61,36 +74,31 @@ get_species_range_areas<-function(scinames, db=NULL){
 # get a list of areas from a vector of species names
 # do all of this directly from the database, rather than call it repeatedly
 get_species_range_areas_db <- function(scinames, db=NULL){
-    if(is.null(db)) { 
-        db <- getdb()
-        if(is.null(db)) {
-            warning("can't get db connection")
-            return(NULL)
-        }
-    }
-    
+    if(is.null(db)) { db <- getdb() }
+
     # create a temp table to hold species
     # TODO firt check if table exists
     print("not implemented yet")
-    create_table_sql <- paste0("CREATE TEMPORARY TABLE specieslist ( sciname varchar)")
-    # insert species into table
+    return(FALSE)
+    
+    # create a temporary table
+    # create_table_sql <- paste0("CREATE TEMPORARY TABLE specieslist ( sciname varchar)")
+    # insert species sent here into that table
+    # create sql that joins that species lisst with all_species table, then uses Postgis to calculate 
+    # the area in the "shape" column, excluding those with presence column = extinct code
+    # return the results as a data frame with columns 'sciname' and 'areasqkm'
 }
 
 
-plot_species <-function(sciname='Pyrrhura devillei',db=NA ){
-    if(is.na(db)) { db <- getdb()}
-    x<- get_species_rangemap(db, sciname)
-    
+plot_species <-function(sciname='Pyrrhura devillei',db=NULL ){
+    if(is.null(db)) { db <- getdb()}
+    x<- get_species_rangemap(sciname, db)
     # http://vireo.ansp.org/search.html?Form=Search&SEARCHBY=Common&KEYWORDS=Blaze-winged+Parakeet&RESULTS=100&Search2=Search%22
-
-    plot(x)
-    # x = st_read(db, table = "public.all_species")
     
     ggplot(data = world) +
         geom_sf() +
         geom_sf(data = x, fill = 'blue') +
         coord_sf(xlim = c(-85,-30), ylim = c(-60,15), expand = FALSE)
-        #bbox:           xmin: -60.06708 ymin: -22.56171 xmax: -54.31781 ymax: -17.92462
 }
 
 ### another test of getting and mapping the range map of a species
